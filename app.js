@@ -18,9 +18,11 @@ const aliases = {
   date: ['fechaincidencia','fecha','fechaevento','fechaapertura','incidenciafecha'],
   owner: ['responsablemedicion','responsableincidencia','responsable','tecnico','operario','persona','responsablecorreccion'],
   parameter: ['tipoincidencia','parametroafectado','parametro','concepto','elemento'],
+  element: ['elemento','elementoafectado','equipo','ubicacion'],
   value: ['valordetectado','valordesviado','valordesviacion','valormedido','valorregistrado','valor','desviacion','descripcion'],
   status: ['estado','situacion','estatus','estadoincidencia'],
-  correctionDate: ['fechacorreccion','fechadecorreccion','fechacierre','fecharesolucion','fechaaccioncorrectiva']
+  correctionDate: ['fechacorreccion','fechadecorreccion','fechacierre','fecharesolucion','fechaaccioncorrectiva'],
+  correctiveAction: ['accioncorrectorapropuesta','accioncorrectivarealizada','accioncorrectora','accioncorrectiva','accionrealizada','accion']
 };
 
 function parseCSV(text) {
@@ -70,7 +72,10 @@ function loadGoogleSheet() {
 }
 
 function field(record, key) {
-  const header = aliases[key].find(alias => Object.keys(record).some(name => name === alias || name.includes(alias)));
+  const names = Object.keys(record);
+  const header = aliases[key]
+    .map(alias => names.find(name => name === alias || name.includes(alias)))
+    .find(Boolean);
   return header ? record[header] : '';
 }
 
@@ -107,9 +112,9 @@ function render() {
       && (!toDate.value || (date && date <= toDate.value));
   });
   body.innerHTML = visible.map(item => `<tr>
-    <td>${escapeHTML(item.date)}</td><td>${escapeHTML(item.owner)}</td><td>${escapeHTML(item.parameter)}</td>
+    <td>${escapeHTML(item.date)}</td><td>${escapeHTML(item.owner)}</td><td>${escapeHTML(item.parameter)}</td><td>${escapeHTML(item.element)}</td>
     <td>${escapeHTML(item.value)}</td><td><span class="status status--${statusClass(item.status)}">${escapeHTML(item.status || 'Sin definir')}</span></td>
-    <td>${escapeHTML(item.correctionDate)}</td></tr>`).join('');
+    <td>${escapeHTML(item.correctionDate)}</td><td>${isResolved(item.status) ? escapeHTML(item.correctiveAction) : '—'}</td></tr>`).join('');
   emptyState.hidden = visible.length !== 0;
   const total = visible.length, resolved = visible.filter(item => isResolved(item.status)).length;
   document.querySelector('#totalCount').textContent = total;
@@ -132,12 +137,12 @@ async function loadData() {
       try { records = await loadGoogleSheet(); }
       catch { throw new Error('La pestaña de incidencias no está publicada para lectura web.'); }
     }
-    incidents = records.map(record => ({ date: field(record, 'date'), owner: field(record, 'owner'), parameter: field(record, 'parameter'), value: field(record, 'value'), status: field(record, 'status'), correctionDate: field(record, 'correctionDate') })).filter(item => Object.values(item).some(Boolean));
+    incidents = records.map(record => ({ date: field(record, 'date'), owner: field(record, 'owner'), parameter: field(record, 'parameter'), element: field(record, 'element'), value: field(record, 'value'), status: field(record, 'status'), correctionDate: field(record, 'correctionDate'), correctiveAction: field(record, 'correctiveAction') })).filter(item => Object.values(item).some(Boolean));
     populateFilters();
     render();
     document.querySelector('#updatedAt').textContent = `Última actualización: ${new Intl.DateTimeFormat('es-ES', { dateStyle: 'long', timeStyle: 'short' }).format(new Date())}`;
   } catch (error) {
-    body.innerHTML = `<tr><td colspan="6" class="loading">${escapeHTML(error.message)} Vuelve a intentarlo en unos momentos.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="8" class="loading">${escapeHTML(error.message)} Vuelve a intentarlo en unos momentos.</td></tr>`;
     document.querySelector('#updatedAt').textContent = 'No se han podido actualizar los datos.';
   } finally { refreshButton.disabled = false; }
 }

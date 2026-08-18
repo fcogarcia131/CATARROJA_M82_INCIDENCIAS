@@ -12,7 +12,7 @@ const ownerFilter = document.querySelector('#ownerFilter');
 const fromDate = document.querySelector('#fromDate');
 const toDate = document.querySelector('#toDate');
 let incidents = [];
-let sortAscending = true;
+let sortAscending = false;
 
 const normalize = (value) => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const aliases = {

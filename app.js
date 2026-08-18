@@ -102,7 +102,7 @@ function populateFilters() {
 
 function render() {
   const term = normalize(search.value);
-  const visible = incidents.filter(item => {
+  let visible = incidents.filter(item => {
     const date = toDateValue(item.date);
     return normalize(Object.values(item).join(' ')).includes(term)
       && (!statusFilter.value || item.status === statusFilter.value)
@@ -111,6 +111,18 @@ function render() {
       && (!fromDate.value || (date && date >= fromDate.value))
       && (!toDate.value || (date && date <= toDate.value));
   });
+
+  visible.sort((a, b) => {
+
+    const fechaA = toDateValue(a.date);
+    const fechaB = toDateValue(b.date);
+
+    if (!fechaA) return 1;
+    if (!fechaB) return -1;
+
+    return fechaB.localeCompare(fechaA);
+
+});
   body.innerHTML = visible.map(item => `<tr>
     <td>${escapeHTML(item.date)}</td><td>${escapeHTML(item.owner)}</td><td>${escapeHTML(item.parameter)}</td><td>${escapeHTML(item.element)}</td>
     <td>${escapeHTML(item.value)}</td><td><span class="status status--${statusClass(item.status)}">${escapeHTML(item.status || 'Sin definir')}</span></td>

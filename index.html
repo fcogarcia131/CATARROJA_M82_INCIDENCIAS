@@ -11,10 +11,9 @@
   <body>
     <main class="page-shell">
       <section class="hero" aria-labelledby="page-title">
-        <div class="hero__eyebrow"><span class="status-dot"></span> Datos en tiempo real</div>
         <div class="hero__content">
           <div>
-            <p class="overline">Catarroja · Mundial 82</p>
+            <p class="overline">Catarroja Mundial 82, control de las operaciones menores de Legionella</p>
             <h1 id="page-title">Incidencias y<br /><em>acciones correctivas</em></h1>
             <p class="hero__summary">Seguimiento transparente de las desviaciones registradas y su resolución.</p>
           </div>
@@ -59,9 +58,11 @@
                 <th>Fecha de la incidencia</th>
                 <th>Responsable</th>
                 <th>Parámetro</th>
+                <th>Elemento</th>
                 <th>Valor desviado</th>
                 <th>Estado</th>
                 <th>Fecha de corrección</th>
+                <th>Acción correctiva</th>
               </tr>
             </thead>
             <tbody id="incidentsBody"></tbody>
@@ -70,7 +71,7 @@
         </div>
       </section>
     </main>
-    <template id="loadingRow"><tr><td colspan="6" class="loading">Cargando incidencias…</td></tr></template>
+    <template id="loadingRow"><tr><td colspan="8" class="loading">Cargando incidencias…</td></tr></template>
     <script src="app.js"></script>
   </body>
 </html>

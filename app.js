@@ -151,7 +151,7 @@ async function loadData() {
     }
     
    // incidents = records.map(record => ({ date: field(record, 'date'), owner: field(record, 'owner'), parameter: field(record, 'parameter'), element: field(record, 'element'), value: field(record, 'value'), status: field(record, 'status'), correctionDate: field(record, 'correctionDate'), correctiveAction: field(record, 'correctiveAction') })).filter(item => Object.values(item).some(Boolean));//
-    console.log(records);
+    
 
 incidents = records.map(record => ({
     date: field(record, 'date'),
@@ -164,7 +164,7 @@ incidents = records.map(record => ({
     correctiveAction: field(record, 'correctiveAction')
 })).filter(item => Object.values(item).some(Boolean));
 
-console.log(incidents);
+
     populateFilters();
     render();
     document.querySelector('#updatedAt').textContent = `Última actualización: ${new Intl.DateTimeFormat('es-ES', { dateStyle: 'long', timeStyle: 'short' }).format(new Date())}`;

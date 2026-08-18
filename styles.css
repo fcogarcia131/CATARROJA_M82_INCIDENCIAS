@@ -7,7 +7,7 @@ body { margin:0; color:var(--ink); background:#eef2ed; font-family:Arial, Helvet
 .status-dot { display:inline-block; width:8px; height:8px; margin-right:8px; border-radius:50%; background:#4ec28a; box-shadow:0 0 0 4px #d9f5e7; }
 .hero__content { display:flex; align-items:end; justify-content:space-between; gap:28px; }
 .overline { margin:28px 0 9px; font-size:.9rem; }
-h1 { max-width:750px; margin:0; font-family:Arial, Helvetica, sans-serif; font-size:1.8rem; font-weight:500; line-height:1.12; letter-spacing:-.02em; }
+h1 { max-width:750px; margin:0; font-family:Arial, Helvetica, sans-serif; font-size:5rem; font-weight:700; line-height:.92; letter-spacing:-.02em; }
 h1 em { color:var(--accent); font-weight:500; }
 .hero__summary { max-width:520px; margin:22px 0 0; color:var(--muted); font-size:1.08rem; line-height:1.6; }
 .button { flex:none; border:0; border-radius:999px; padding:13px 18px; color:white; background:var(--accent); cursor:pointer; font:inherit; font-weight:700; transition:background .2s, transform .2s; }

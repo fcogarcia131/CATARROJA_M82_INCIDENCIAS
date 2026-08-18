@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Informe en tiempo real de incidencias y acciones correctivas." />
+    <title>Control de incidencias | Catarroja Mundial 82</title>
+    <link rel="preconnect" href="https://docs.google.com" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero__eyebrow"><span class="status-dot"></span> Datos en tiempo real</div>
+        <div class="hero__content">
+          <div>
+            <p class="overline">Catarroja · Mundial 82</p>
+            <h1 id="page-title">Incidencias y<br /><em>acciones correctivas</em></h1>
+            <p class="hero__summary">Seguimiento transparente de las desviaciones registradas y su resolución.</p>
+          </div>
+          <button id="refreshButton" class="button" type="button">
+            <span aria-hidden="true">↻</span> Actualizar datos
+          </button>
+        </div>
+        <p id="updatedAt" class="updated-at" aria-live="polite">Cargando información…</p>
+      </section>
+
+      <section class="metrics" aria-label="Resumen de incidencias">
+        <article class="metric"><span>Total incidencias</span><strong id="totalCount">—</strong></article>
+        <article class="metric metric--open"><span>Pendientes</span><strong id="openCount">—</strong></article>
+        <article class="metric metric--resolved"><span>Corregidas</span><strong id="resolvedCount">—</strong></article>
+        <article class="metric"><span>Resolución</span><strong id="resolutionRate">—</strong></article>
+      </section>
+
+      <section class="panel" aria-labelledby="incidents-title">
+        <div class="panel__header">
+          <div>
+            <p class="overline">Registro de seguimiento</p>
+            <h2 id="incidents-title">Detalle de incidencias</h2>
+          </div>
+          <label class="search">
+            <span class="sr-only">Buscar en las incidencias</span>
+            <span aria-hidden="true">⌕</span>
+            <input id="searchInput" type="search" placeholder="Buscar responsable, parámetro…" />
+          </label>
+        </div>
+        <div class="filters" aria-label="Filtros de incidencias">
+          <label><span>Estado</span><select id="statusFilter"><option value="">Todos los estados</option></select></label>
+          <label><span>Parámetro</span><select id="parameterFilter"><option value="">Todos los parámetros</option></select></label>
+          <label><span>Responsable</span><select id="ownerFilter"><option value="">Todos los responsables</option></select></label>
+          <label><span>Desde</span><input id="fromDate" type="date" /></label>
+          <label><span>Hasta</span><input id="toDate" type="date" /></label>
+          <button id="clearFilters" class="clear-button" type="button">Limpiar filtros</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha de la incidencia</th>
+                <th>Responsable</th>
+                <th>Parámetro</th>
+                <th>Valor desviado</th>
+                <th>Estado</th>
+                <th>Fecha de corrección</th>
+              </tr>
+            </thead>
+            <tbody id="incidentsBody"></tbody>
+          </table>
+          <div id="emptyState" class="empty-state" hidden>No hay incidencias que coincidan con la búsqueda.</div>
+        </div>
+      </section>
+    </main>
+    <template id="loadingRow"><tr><td colspan="6" class="loading">Cargando incidencias…</td></tr></template>
+    <script src="app.js"></script>
+  </body>
+</html>

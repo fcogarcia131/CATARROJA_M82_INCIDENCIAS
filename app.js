@@ -12,7 +12,6 @@ const ownerFilter = document.querySelector('#ownerFilter');
 const fromDate = document.querySelector('#fromDate');
 const toDate = document.querySelector('#toDate');
 let incidents = [];
-let sortAscending = false;
 
 const normalize = (value) => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const aliases = {
@@ -89,22 +88,6 @@ function toDateValue(value) {
   return match ? `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}` : '';
 }
 
-function sortByDate(data) {
-    return [...data].sort((a, b) => {
-
-        const da = toDateValue(a.date);
-        const db = toDateValue(b.date);
-
-        if (da === db) return 0;
-
-        if (sortAscending) {
-            return da.localeCompare(db);
-        }
-
-        return db.localeCompare(da);
-
-    });
-}
 function fillSelect(select, values, label) {
   const selected = select.value;
   select.innerHTML = `<option value="">${label}</option>` + [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es')).map(value => `<option value="${escapeHTML(value)}">${escapeHTML(value)}</option>`).join('');
@@ -119,7 +102,7 @@ function populateFilters() {
 
 function render() {
   const term = normalize(search.value);
-  let visible = incidents.filter(item => {
+  const visible = incidents.filter(item => {
     const date = toDateValue(item.date);
     return normalize(Object.values(item).join(' ')).includes(term)
       && (!statusFilter.value || item.status === statusFilter.value)
@@ -128,7 +111,6 @@ function render() {
       && (!fromDate.value || (date && date >= fromDate.value))
       && (!toDate.value || (date && date <= toDate.value));
   });
-  visible = sortByDate(visible);
   body.innerHTML = visible.map(item => `<tr>
     <td>${escapeHTML(item.date)}</td><td>${escapeHTML(item.owner)}</td><td>${escapeHTML(item.parameter)}</td><td>${escapeHTML(item.element)}</td>
     <td>${escapeHTML(item.value)}</td><td><span class="status status--${statusClass(item.status)}">${escapeHTML(item.status || 'Sin definir')}</span></td>
@@ -168,19 +150,6 @@ search.addEventListener('input', render);
 [statusFilter, parameterFilter, ownerFilter, fromDate, toDate].forEach(control => control.addEventListener('change', render));
 document.querySelector('#clearFilters').addEventListener('click', () => { search.value = ''; statusFilter.value = ''; parameterFilter.value = ''; ownerFilter.value = ''; fromDate.value = ''; toDate.value = ''; render(); });
 refreshButton.addEventListener('click', loadData);
-document
-    .getElementById("sortDate")
-    .addEventListener("click", () => {
-
-        sortAscending = !sortAscending;
-
-        document.getElementById("sortDateIcon").textContent =
-            sortAscending ? "▲" : "▼";
-
-        render();
-
-    });
-
 loadData();
 // Mantiene el informe sincronizado incluso si queda abierto en una pantalla de seguimiento.
 setInterval(loadData, 5 * 60 * 1000);

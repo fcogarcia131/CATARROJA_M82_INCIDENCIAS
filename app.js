@@ -15,14 +15,14 @@ let incidents = [];
 
 const normalize = (value) => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const aliases = {
-  date: ['fechaincidencia','fecha','fechaevento','fechaapertura','incidenciafecha'],
-  owner: ['responsablemedicion','responsableincidencia','responsable','tecnico','operario','persona','responsablecorreccion'],
-  parameter: ['tipoincidencia','parametroafectado','parametro','concepto','elemento'],
-  element: ['elemento','elementoafectado','equipo','ubicacion'],
-  value: ['valordetectado','valordesviado','valordesviacion','valormedido','valorregistrado','valor','desviacion','descripcion'],
-  status: ['estado','situacion','estatus','estadoincidencia'],
-  correctionDate: ['fechacorreccion','fechadecorreccion','fechacierre','fecharesolucion','fechaaccioncorrectiva'],
-  correctiveAction: ['accioncorrectorapropuesta','accioncorrectivarealizada','accioncorrectora','accioncorrectiva','accionrealizada','accion']
+  date: ['fechaincidencia', 'fecha', 'fechaevento', 'fechaapertura', 'incidenciafecha'],
+  owner: ['responsablemedicion', 'responsableincidencia', 'responsable', 'tecnico', 'operario', 'persona', 'responsablecorreccion'],
+  parameter: ['tipoincidencia', 'parametroafectado', 'parametro', 'concepto', 'elemento'],
+  element: ['elemento', 'elementoafectado', 'equipo', 'ubicacion'],
+  value: ['valordetectado', 'valordesviado', 'valordesviacion', 'valormedido', 'valorregistrado', 'valor', 'desviacion', 'descripcion'],
+  status: ['estado', 'situacion', 'estatus', 'estadoincidencia'],
+  correctionDate: ['fechacorreccion', 'fechadecorreccion', 'fechacierre', 'fecharesolucion', 'fechaaccioncorrectiva'],
+  correctiveAction: ['accioncorrectorapropuesta', 'accioncorrectivarealizada', 'accioncorrectora', 'accioncorrectiva', 'accionrealizada', 'accion']
 };
 
 function parseCSV(text) {
@@ -122,7 +122,7 @@ function render() {
 
     return fechaB.localeCompare(fechaA);
 
-});
+  });
   body.innerHTML = visible.map(item => `<tr>
     <td>${escapeHTML(item.date)}</td><td>${escapeHTML(item.owner)}</td><td>${escapeHTML(item.parameter)}</td><td>${escapeHTML(item.element)}</td>
     <td>${escapeHTML(item.value)}</td><td><span class="status status--${statusClass(item.status)}">${escapeHTML(item.status || 'Sin definir')}</span></td>
@@ -149,7 +149,22 @@ async function loadData() {
       try { records = await loadGoogleSheet(); }
       catch { throw new Error('La pestaña de incidencias no está publicada para lectura web.'); }
     }
-    incidents = records.map(record => ({ date: field(record, 'date'), owner: field(record, 'owner'), parameter: field(record, 'parameter'), element: field(record, 'element'), value: field(record, 'value'), status: field(record, 'status'), correctionDate: field(record, 'correctionDate'), correctiveAction: field(record, 'correctiveAction') })).filter(item => Object.values(item).some(Boolean));
+    
+   // incidents = records.map(record => ({ date: field(record, 'date'), owner: field(record, 'owner'), parameter: field(record, 'parameter'), element: field(record, 'element'), value: field(record, 'value'), status: field(record, 'status'), correctionDate: field(record, 'correctionDate'), correctiveAction: field(record, 'correctiveAction') })).filter(item => Object.values(item).some(Boolean));//
+    console.log(records);
+
+incidents = records.map(record => ({
+    date: field(record, 'date'),
+    owner: field(record, 'owner'),
+    parameter: field(record, 'parameter'),
+    element: field(record, 'element'),
+    value: field(record, 'value'),
+    status: field(record, 'status'),
+    correctionDate: field(record, 'correctionDate'),
+    correctiveAction: field(record, 'correctiveAction')
+})).filter(item => Object.values(item).some(Boolean));
+
+console.log(incidents);
     populateFilters();
     render();
     document.querySelector('#updatedAt').textContent = `Última actualización: ${new Intl.DateTimeFormat('es-ES', { dateStyle: 'long', timeStyle: 'short' }).format(new Date())}`;
@@ -165,3 +180,4 @@ refreshButton.addEventListener('click', loadData);
 loadData();
 // Mantiene el informe sincronizado incluso si queda abierto en una pantalla de seguimiento.
 setInterval(loadData, 5 * 60 * 1000);
+

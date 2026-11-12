@@ -1,77 +1,806 @@
+<!-- WEB ALIMENTADA CON CSV PUBLICADO RESPUESTAS DE FORMULARIO 1 OP MENORES NOMBRE CLIENTE EN LINEA 309
+ URL DEL CSV DE LA PESTAÑA "DATOS" EN LINEA 409 -->
+
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Informe en tiempo real de incidencias y acciones correctivas." />
-    <title>Control de incidencias | Catarroja Mundial 82</title>
-    <link rel="preconnect" href="https://docs.google.com" />
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <main class="page-shell">
-      <section class="hero" aria-labelledby="page-title">
-        <div class="hero__content">
-          <div>
-            <p class="overline">Catarroja Mundial 82, control de las operaciones menores de Legionella</p>
-            <h1 id="page-title">Incidencias y<br /><em>acciones correctivas</em></h1>
-            <p class="hero__summary">Seguimiento transparente de las desviaciones registradas y su resolución.</p>
-          </div>
-          <button id="refreshButton" class="button" type="button">
-            <span aria-hidden="true">↻</span> Actualizar datos
-          </button>
-        </div>
-        <p id="updatedAt" class="updated-at" aria-live="polite">Cargando información…</p>
-      </section>
 
-      <section class="metrics" aria-label="Resumen de incidencias">
-        <article class="metric"><span>Total incidencias</span><strong id="totalCount">—</strong></article>
-        <article class="metric metric--open"><span>Pendientes</span><strong id="openCount">—</strong></article>
-        <article class="metric metric--resolved"><span>Corregidas</span><strong id="resolvedCount">—</strong></article>
-        <article class="metric"><span>Resolución</span><strong id="resolutionRate">—</strong></article>
-      </section>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <!-- <title>Operaciones menores legionella · MUNDIAL 82 CATARROJA, AGUA SANITARIA</title> -->
+  <style>
+    :root {
+      --bg: #f5f8fa;
+      --ink: #172a3a;
+      --muted: #5e7180;
+      --line: #d7e2e8;
+      --card: #fff;
+      --accent: #087f8c;
+      --alert: #e98678;
+      --alert-soft: #fff0ec
+    }
 
-      <section class="panel" aria-labelledby="incidents-title">
-        <div class="panel__header">
-          <div>
-            <p class="overline">Registro de seguimiento</p>
-            <h2 id="incidents-title">Detalle de incidencias</h2>
-          </div>
-          <label class="search">
-            <span class="sr-only">Buscar en las incidencias</span>
-            <span aria-hidden="true">⌕</span>
-            <input id="searchInput" type="search" placeholder="Buscar responsable, parámetro…" />
-          </label>
-        </div>
-        <div class="filters" aria-label="Filtros de incidencias">
-          <label><span>Estado</span><select id="statusFilter"><option value="">Todos los estados</option></select></label>
-          <label><span>Parámetro</span><select id="parameterFilter"><option value="">Todos los parámetros</option></select></label>
-          <label><span>Responsable</span><select id="ownerFilter"><option value="">Todos los responsables</option></select></label>
-          <label><span>Desde</span><input id="fromDate" type="date" /></label>
-          <label><span>Hasta</span><input id="toDate" type="date" /></label>
-          <button id="clearFilters" class="clear-button" type="button">Limpiar filtros</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Fecha de la incidencia</th>
-                <th>Responsable</th>
-                <th>Parámetro</th>
-                <th>Elemento</th>
-                <th>Valor desviado</th>
-                <th>Estado</th>
-                <th>Fecha de corrección</th>
-                <th>Acción correctiva</th>
-              </tr>
-            </thead>
-            <tbody id="incidentsBody"></tbody>
-          </table>
-          <div id="emptyState" class="empty-state" hidden>No hay incidencias que coincidan con la búsqueda.</div>
-        </div>
-      </section>
-    </main>
-    <template id="loadingRow"><tr><td colspan="8" class="loading">Cargando incidencias…</td></tr></template>
-    <script src="app.js"></script>
-  </body>
+    * {
+      box-sizing: border-box
+    }
+
+    /* Solo para las casillas del filtro por valor (no afecta a la gráfica) */
+    label[hidden] {
+      display: none
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 32px 40px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin: 0 0 4px
+    }
+
+    /* TITULO INSTALACION */   
+   header p {
+  margin: 6px 0 24px;
+  color: var(--ink);
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 10px #1630440c
+    }
+
+    .label,
+    .context {
+      color: var(--muted);
+      font-size: .86rem
+    }
+
+    .value {
+      font-size: 1.75rem;
+      font-weight: 650;
+      margin: 4px 0
+    }
+
+    .value.alert {
+      color: var(--alert)
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1.4fr 1.4fr 1fr 1fr;
+      gap: 16px;
+      margin: 22px 0
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-weight: 600;
+      font-size: .9rem
+    }
+
+    select,
+    input[type="date"] {
+      min-width: 160px;
+      padding: 9px 11px;
+      font: inherit;
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px
+    }
+
+    #chartBox,
+    .report {
+      position: relative;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+       padding: 18px 24px;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      display: block
+    }
+
+    .tip {
+      position: absolute;
+      background: var(--ink);
+      color: #fff;
+      padding: 6px 9px;
+      border-radius: 6px;
+      font-size: .8rem;
+      transform: translate(-50%, -120%);
+      pointer-events: none
+    }
+
+    .note {
+      color: #92510b;
+      font-size: .86rem;
+      margin: 10px 0 0
+    }
+
+    .status {
+      padding: 18px;
+      color: var(--muted)
+    }
+
+    .report {
+      margin-top: 26px;
+      padding: 18px
+    }
+
+    .report-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 12px
+    }
+
+    .report h2 {
+      font-size: 1.05rem;
+      margin: 0
+    }
+
+    .report label {
+      font-size: .84rem
+    }
+
+    .report select {
+      min-width: 230px
+    }
+
+    .table-wrap {
+      overflow-x: auto
+    }
+
+    .report table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .9rem
+    }
+
+    .report th,
+    .report td {
+      text-align: left;
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top
+    }
+
+    .report th {
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap
+    }
+
+    .report tr.out-of-range td {
+      background: var(--alert-soft)
+    }
+
+    .report tr.out-of-range td:nth-child(3) {
+      color: #a3473d;
+      font-weight: 700
+    }
+
+    .report td:first-child,
+    .report td:nth-child(3) {
+      white-space: nowrap
+    }
+
+
+
+    @media(max-width:620px) {
+      main {
+        padding: 18px 12px
+      }
+
+      .stats {
+        grid-template-columns: 1fr
+      }
+
+      label,
+      select {
+        width: 100%;
+        min-width: 0
+      }
+
+      .report {
+        padding: 12px
+      }
+
+      .report-head {
+        align-items: stretch
+      }
+    }
+
+    .btn-print {
+      background: #087f8c;
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    .btn-print:hover {
+      opacity: 0.9;
+    }
+
+    @media(max-width:768px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    #printFilters {
+      display: none;
+    }
+
+    @media print {
+
+      #printFilters {
+        display: block;
+        margin: 10px 0 15px 0;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+
+      body {
+        background: white;
+      }
+
+    
+      .controls,
+      .btn-print {
+        display: none;
+      }
+
+      main {
+        max-width: none;
+        padding: 0;
+      }
+
+      #chartBox,
+      .report,
+      .card {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+
+
+    <header>
+      <h1>OPERACIONES MENORES PARA LA PREVENCION DE LA LEGIONELLA</h1>
+      <p>MUNDIAL 82 Catarroja,  AFCSCH</p>
+
+      <button onclick="window.print()" class="btn-print">
+        📄 Exportar informe PDF
+      </button>
+
+    </header>
+
+
+
+    <div class="stats">
+      <div class="card">
+        <div class="label">Registros</div>
+        <div class="value" id="total">—</div>
+        <div class="context" id="period">Cargando…</div>
+      </div>
+      <div class="card">
+        <div class="label">Última lectura</div>
+        <div class="value" id="latest">—</div>
+        <div class="context" id="detail">—</div>
+      </div>
+    </div>
+    <div class="controls">
+      <label>Parámetro<select id="metric"></select></label>
+      <label>Zona<select id="zone"></select></label>
+      <label>Desde<input type="date" id="fromDate"></label>
+      <label>Hasta<input type="date" id="toDate"></label>
+    </div>
+    <div id="printFilters"></div>
+    <div id="chartBox">
+      <div class="status" id="status">Cargando las mediciones…</div><svg id="chart" viewBox="0 0 700 330" role="img"
+        aria-label="Evolución de las mediciones" hidden></svg>
+      <div class="tip" id="tip" hidden></div>
+    </div>
+    <p class="note" id="note"></p>
+    <section class="report" aria-labelledby="report-title">
+      <div class="report-head">
+        <h2 id="report-title">Informe de lecturas</h2>
+       <label>
+        Parámetro del informe
+        <select id="reportMetric"
+            aria-label="Parámetro del informe">
+        </select>
+       </label>
+       
+       <label>
+  Elemento
+  <select id="reportElement"
+          aria-label="Elemento revisado">
+    <option value="Todos">Todos</option>
+  </select>
+</label>
+
+<label>
+  Responsable
+  <select id="reportResp"
+          aria-label="Responsable del registro">
+    <option value="Todos">Todos</option>
+  </select>
+</label>
+
+<label>
+  Valor del parámetro
+  <select id="reportCond" aria-label="Filtrar por valor del parámetro">
+    <option value="Todos">Todos</option>
+  </select>
+</label>
+
+<label id="lblVal1" hidden>
+  <span id="txtVal1">Valor</span>
+  <input type="text" inputmode="decimal" id="reportVal1" placeholder="p. ej. 60" style="padding:9px 11px;font:inherit;border:1px solid var(--line);border-radius:8px;width:110px">
+</label>
+
+<label id="lblVal2" hidden>
+  y
+  <input type="text" inputmode="decimal" id="reportVal2" placeholder="p. ej. 70" style="padding:9px 11px;font:inherit;border:1px solid var(--line);border-radius:8px;width:110px">
+</label>
+
+       <label>
+  Desde
+  <input type="date" id="fechaDesde">
+</label>
+
+<label>
+  Hasta
+  <input type="date" id="fechaHasta">
+</label>
+       
+      </div>
+     
+   
+     
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>ID del elemento medido o revisado</th>
+              <th>Valor del parámetro</th>
+              <th>Responsable del registro</th>
+            </tr>
+          </thead>
+          <tbody id="reportRows"></tbody>
+        </table>
+      </div>
+      <p class="context" id="reportCount" style="margin:10px 0 0"></p>
+    </section>
+   
+
+
+   
+  </main>
+  <script>
+    const source='https://docs.google.com/spreadsheets/d/e/2PACX-1vRR0zXeaD3_kNR0twc8r9cMJ2Tve6zdrs3jg4edg2k8bR1nIN1p6aYU_5B4YV-CrDA-zhB4MXCf7i4B/pub?gid=647157156&single=true&output=csv'
+    //datos//
+  
+
+
+
+    const names = {
+      'Temperatura Acumulador': 'Temperatura acumulador',
+      'Temperatura Retorno': 'Temperatura retorno',
+      'Valor cloro libre': 'Cloro libre',
+      'Valor PH': 'pH',
+      'Valor turbidez': 'Turbidez',
+      'Temperatura depósito AF': 'Temperatura depósito AF',
+      'Temperatura punto terminal AC': 'Temperatura punto terminal AC',
+
+      'Purga punto terminal': 'Purga punto terminal',
+      'Purga acumulador': 'Purga acumulador',
+      'purgado tuberías': 'Purgado tuberías',
+      'Estado de conservacion y limpieza': 'Estado conservación y limpieza'
+    };
+
+    const limits = {'Cloro libre': {min: .2, max: 1}, 'pH': {min: 6.5, max: 9.5}, 'Temperatura acumulador': {min: 60}, 'Temperatura retorno': {min: 50}, 'Temperatura depósito AF': {max: 20}, 'Temperatura punto terminal AC': {min: 50}, 'Turbidez': {max: 4}};
+
+    const metricasTexto = [
+      'Purga punto terminal',
+      'Purga acumulador',
+      'Purgado tuberías',
+      'Estado conservación y limpieza'
+    ];
+
+    const $ = id => document.getElementById(id), fmt = v => Number(v.toFixed(2)).toLocaleString('es-ES'), key = s => String(s || '').trim().toLocaleLowerCase('es-ES');
+    let data = [];
+    function csv(text) {let rows = [], row = [], cell = '', q = false; for (let i = 0; i < text.length; i++) {let c = text[i], n = text[i + 1]; if (c === '"' && q && n === '"') {cell += '"'; i++} else if (c === '"') q = !q; else if (c === ',' && !q) {row.push(cell); cell = ''} else if ((c === '\n' || c === '\r') && !q) {if (c === '\r' && n === '\n') i++; row.push(cell); if (row.some(x => x)) rows.push(row); row = []; cell = ''} else cell += c} if (cell || row.length) {row.push(cell); rows.push(row)} return rows}
+    // Acepta "10/11/2026" y también "10/11/2026 12:30:00" (con hora)
+    function iso(s) {let m = String(s || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : ''}
+    function number(s) {
+      // Admite "60", "60,5", "60.5", "60 ºC", "60º", "1.234,5"... Devuelve null si no es un número
+      // (p. ej. "Apagado" o una celda que Google ha convertido en fecha "07/09/2026").
+      let t = String(s || '').trim();
+      if (/\d+\/\d+/.test(t)) return null;
+      let v = t.replace(/[^\d,.\-]/g, '');
+      if (!/\d/.test(v)) return null;
+      if (v.includes(',') && v.includes('.')) {
+        v = v.lastIndexOf(',') > v.lastIndexOf('.') ? v.replace(/\./g, '').replace(',', '.') : v.replace(/,/g, '');
+      } else {
+        v = v.replace(',', '.');
+      }
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null
+    }
+    // Valor que se muestra en el informe: el número formateado o, si no es numérico, el texto tal cual ("Apagado")
+    function shown(p) {return Number.isFinite(p.value) ? fmt(p.value) : escapeHtml(p.raw)} function dateLabel(s) {return new Date(s + 'T00:00:00').toLocaleDateString('es-ES', {day: '2-digit', month: 'short'})} function dateFull(s) {return new Date(s + 'T00:00:00').toLocaleDateString('es-ES')} function escapeHtml(s) {return String(s || '—').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]))}
+    function options() {let metrics = [...new Set(data.map(x => x.metric))], zones = [...new Set(data.map(x => x.zone))], metricOptions = metrics.map(x => `<option>${x}</option>`).join(''); $('metric').innerHTML = metricOptions; $('reportMetric').innerHTML = metricOptions; $('zone').innerHTML = '<option>Todas las zonas</option>' + zones.map(x => `<option>${x}</option>`).join(''); $('metric').value = metrics.includes('Temperatura acumulador') ? 'Temperatura acumulador' : metrics[0]; $('reportMetric').value = $('metric').value}
+    function outOfRange(p) {let l = limits[p.metric]; return !!l && ((l.min !== undefined && p.value < l.min) || (l.max !== undefined && p.value > l.max))}
+
+    // ---- Filtro por valor del parámetro ----
+    const condNumericas = [
+      ['lt', 'Menor que (<)'], ['le', 'Menor o igual que (≤)'],
+      ['gt', 'Mayor que (>)'], ['ge', 'Mayor o igual que (≥)'],
+      ['eq', 'Igual a (=)'], ['between', 'Entre (ambos incluidos)'],
+      ['out', 'Fuera de rango (límites legales)'], ['in', 'Dentro de rango (límites legales)'],
+      ['nonum', 'Sin valor numérico (Apagado, etc.)']
+    ];
+    let condMetric = null;
+    function condOptions(m) {
+      if (condMetric === m) return;
+      condMetric = m;
+      const prev = $('reportCond').value;
+      const esTexto = metricasTexto.includes(m);
+      const textos = [...new Set(data.filter(x => key(x.metric) === key(m) && !Number.isFinite(x.value))
+        .map(x => String(x.raw).trim()).filter(Boolean))].sort();
+      let html = '<option value="Todos">Todos</option>';
+      if (!esTexto) html += condNumericas.filter(([k]) => k !== 'out' && k !== 'in' || limits[m]).map(([k, t]) => `<option value="${k}">${t}</option>`).join('');
+      if (textos.length) html += '<optgroup label="Texto registrado">' + textos.map(t => `<option value="txt:${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('') + '</optgroup>';
+      $('reportCond').innerHTML = html;
+      $('reportCond').value = [...$('reportCond').options].some(o => o.value === prev) ? prev : 'Todos';
+      condInputs();
+    }
+    function condInputs() {
+      const c = $('reportCond').value;
+      const necesita = ['lt', 'le', 'gt', 'ge', 'eq', 'between'].includes(c);
+      $('lblVal1').hidden = !necesita;
+      $('lblVal2').hidden = c !== 'between';
+      $('txtVal1').textContent = c === 'between' ? 'Entre' : 'Valor';
+    }
+    function valueOk(p) {
+      const c = $('reportCond').value;
+      if (c === 'Todos') return true;
+      if (c.startsWith('txt:')) return !Number.isFinite(p.value) && key(p.raw) === key(c.slice(4).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'));
+      if (c === 'nonum') return !Number.isFinite(p.value) && String(p.raw).trim() !== '';
+      if (!Number.isFinite(p.value)) return false;
+      if (c === 'out') return outOfRange(p);
+      if (c === 'in') return !outOfRange(p);
+      const a = number($('reportVal1').value), b = number($('reportVal2').value);
+      if (a === null) return true; // sin valor escrito: no filtra
+      switch (c) {
+        case 'lt': return p.value < a;
+        case 'le': return p.value <= a;
+        case 'gt': return p.value > a;
+        case 'ge': return p.value >= a;
+        case 'eq': return Math.abs(p.value - a) < 1e-9;
+        case 'between': return b === null ? p.value >= a : p.value >= Math.min(a, b) && p.value <= Math.max(a, b);
+      }
+      return true;
+    }
+    function condText() {
+      const c = $('reportCond').value;
+      if (c === 'Todos') return 'Todos';
+      if (c.startsWith('txt:')) return $('reportCond').selectedOptions[0].textContent;
+      const t = (condNumericas.find(([k]) => k === c) || [, c])[1];
+      if (['out', 'in', 'nonum'].includes(c)) return t;
+      return c === 'between' ? `${t} ${$('reportVal1').value || '…'} y ${$('reportVal2').value || '…'}` : `${t} ${$('reportVal1').value || '…'}`;
+    }
+
+    function report(points) {
+      $('reportCount').textContent = `${points.length} lectura(s) en el informe` + ($('reportCond').value !== 'Todos' ? ` · Valor: ${condText()}` : '');
+
+      const esTexto = metricasTexto.includes($('metric').value);
+
+      $('reportRows').innerHTML = points
+        .slice()
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .map(p => `
+
+<tr>
+<td>${dateFull(p.date)}</td>
+<td>${escapeHtml(p.element)}</td>
+<td>${esTexto ? escapeHtml(p.raw) : shown(p)}</td>
+<td>${escapeHtml(p.responsible)}</td>
+</tr>
+
+`).join('');
+
+    }
+
+    function render() {
+      let m = $('metric').value, 
+       z = $('zone').value; 
+     const esTexto = metricasTexto.includes(m);
+     $('reportMetric').value = m; 
+     condOptions(m);
+     const from = $('fromDate')?.value || '';
+      const to = $('toDate')?.value || '';
+
+     const respInforme =
+ $('reportResp')?.value || 'Todos';
+
+ const elementoInforme =
+$('reportElement')?.value || 'Todos';
+
+const desdeInforme =
+ $('fechaDesde')?.value || '';
+
+const hastaInforme =
+ $('fechaHasta')?.value || '';
+
+      let pts = data.filter(x => {
+        if (key(x.metric) !== key(m)) return false;
+        if (z !== 'Todas las zonas' && key(x.zone) !== key(z)) return false;
+        if (from && x.date < from) return false;
+        if (to && x.date > to) return false;
+
+        if (
+          elementoInforme !== 'Todos' &&
+          x.element !== elementoInforme
+          ) return false;
+
+       
+        if (
+    respInforme !== 'Todos' &&
+    x.responsible !== respInforme
+  ) return false;
+
+  if (
+    desdeInforme &&
+    x.date < desdeInforme
+  ) return false;
+
+  if (
+    hastaInforme &&
+    x.date > hastaInforme
+  ) return false;
+
+  return true;
+     }).sort((a, b) => a.date.localeCompare(b.date));
+
+      if (esTexto) {
+
+        $('chart').style.display = 'none';
+        $('status').hidden = true;
+        $('note').textContent = '';
+
+        $('total').textContent = pts.length;
+        $('period').textContent = 'Operaciones registradas';
+       
+         if (pts.length) {
+        const ultimo = pts.at(-1);
+
+        $('latest').textContent = ultimo.element;
+        $('detail').textContent =
+            `${dateFull(ultimo.date)} · ${ultimo.responsible}`;
+        } else {
+        $('latest').textContent = '—';
+        $('detail').textContent = m;
+    }
+       
+
+        report(pts.filter(valueOk));
+
+        return;
+      }
+
+      // Lecturas no numéricas (p. ej. "Apagado"): salen en el informe pero no en la gráfica
+      const sinValor = pts.filter(p => !Number.isFinite(p.value));
+      const numericos = pts.filter(p => Number.isFinite(p.value));
+      const textos = [...new Set(sinValor.map(p => String(p.raw).trim()).filter(Boolean))];
+      $('note').textContent = sinValor.length
+        ? `${sinValor.length} lectura(s) sin valor numérico (${textos.join(', ')}) no se representan en la gráfica; aparecen en el informe.`
+        : '';
+
+      if (!numericos.length) {$('status').hidden = false; 
+      $('status').textContent = sinValor.length ? 'No hay lecturas numéricas para esta combinación (solo: ' + textos.join(', ') + ').' : 'No hay lecturas para esta combinación.';
+      $('chart').style.display = 'none';
+      $('total').textContent = pts.length; $('period').textContent = '—';
+      $('latest').textContent = pts.length ? escapeHtml(pts.at(-1).raw) : '—'; $('latest').classList.remove('alert');
+      $('detail').textContent = pts.length ? `${dateFull(pts.at(-1).date)} · ${pts.at(-1).element} · ${pts.at(-1).responsible}` : '—';
+      report(pts.filter(valueOk));
+   return } $('status').hidden = true; $('chart').style.display = ''; 
+     let series = numericos.map(p => ({date: p.date, value: p.value, out: outOfRange(p), element: p.element, responsible: p.responsible}));
+     let vals = series.map(x => x.value), min = Math.min(...vals), max = Math.max(...vals), pad = (max - min || 1) * .14, lo = min - pad, hi = max + pad; 
+     let W = 700, H = 330, L = 64, R = 26, T = 25, B = 58, iw = W - L - R, ih = H - T - B, x = i => L + (series.length === 1 ? iw / 2 : i * iw / (series.length - 1)), y = v => T + (hi - v) * ih / (hi - lo); 
+     $('total').textContent = pts.length; $('period').textContent = `${dateLabel(series[0].date)}–${dateLabel(series.at(-1).date)}`; 
+
+     const ultima = series.at(-1);
+
+    $('latest').textContent = fmt(ultima.value);
+    $('latest').classList.toggle('alert', ultima.out);
+    $('detail').textContent =
+
+    `${dateFull(ultima.date)} · ${ultima.element} · ${ultima.responsible}`;
+
+     let grid = [0, .25, .5, .75, 1].map(t => lo + (hi - lo) * t).map(v => `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="#d7e2e8"/><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" fill="#5e7180" font-size="12">${fmt(v)}</text>`).join(''); 
+let path = series
+    .map((p, i) => `${i ? 'L' : 'M'} ${x(i)} ${y(p.value)}`)
+    .join(' ');
+
+let dots = series
+    .map((p, i) =>
+        `<circle data-i="${i}" cx="${x(i)}" cy="${y(p.value)}"
+        r="2"
+        fill="${p.out ? '#e98678' : '#087f8c'}"
+        tabindex="0">
+        <title>${dateLabel(p.date)}: ${fmt(p.value)}</title>
+        </circle>`
+    ).join('');
+
+const ancho = $('chart').clientWidth || 700;
+const maxLabels = Math.max(4, Math.floor(ancho / 95));
+const step = Math.ceil(series.length / maxLabels);
+
+let labels = series.map((p, i) => {
+
+    if (i % step !== 0 && i !== series.length - 1)
+        return '';
+
+    // evita que la penúltima etiqueta se monte con la última
+    if (i !== series.length - 1 && series.length - 1 - i < step * 0.6)
+        return '';
+
+    return `
+        <text
+            x="${x(i)}"
+            y="${H - 28}"
+            text-anchor="middle"
+            fill="#5e7180"
+            font-size="11">
+            ${dateLabel(p.date)}
+        </text>`;
+
+}).join('');
+
+    /* GRAFICO */
+     
+$('chart').innerHTML = `<title>${m}: evolución temporal</title>${grid}<path d="${path}" fill="none" stroke="#087f8c" stroke-width="1.2"/>${dots}${labels}<text x="${L}" y="16" fill="#172a3a" font-size="13">${m}</text>`;
+
+     
+      const fromText = from || 'Inicio';
+      const toText = to || 'Actualidad';
+      $('printFilters').innerHTML = `Parámetro: ${m} | Zona: ${z} | Desde: ${fromText} | Hasta: ${toText} | Valor: ${escapeHtml(condText())}`;
+      report(pts.filter(valueOk)); $('chart').querySelectorAll('circle').forEach(el => {let show = () => {let p = series[+el.dataset.i], tip = $('tip'); tip.hidden = false; tip.textContent = `${dateFull(p.date)} | ${p.element} | ${fmt(p.value)}${p.out ? ' | FUERA DE RANGO' : ''}`; tip.style.left = `${(+el.getAttribute('cx') / 700) * 100}%`; tip.style.top = `${(+el.getAttribute('cy') / 330) * 100}%`}; el.onmouseenter = show; el.onfocus = show; el.onmouseleave = () => $('tip').hidden = true; el.onblur = () => $('tip').hidden = true})
+    }
+
+   
+
+
+   
+    fetch(source).then(r => {if (!r.ok) throw Error(r.status); return r.text()}).then(text => {
+      let rows = csv(text), headers = rows.shift(); data = rows.flatMap(r => {
+        let o = Object.fromEntries(headers.map((h, i) => [h, r[i] || ''])), date = iso(o['Fecha']), zone = o['ZONAS'];
+
+        return Object.entries(names).map(([column, metric]) => ({
+          date,
+          zone,
+          metric,
+          raw: o[column],
+          value: number(o[column]),
+          element: o['ELEMENTOS'],
+          responsible: o['Responsable']
+        }))
+
+
+          .filter(x =>
+            x.date &&
+            x.zone &&
+            (
+              x.raw !== '' ||
+              Number.isFinite(x.value)
+            )
+          )
+      }); 
+     if (!data.length) throw Error('sin datos'); 
+     options(); $('metric').onchange = render; 
+
+const elementosInforme = [
+  ...new Set(
+    data
+      .map(x => x.element)
+      .filter(e => e && e.trim() !== '')
+  )
+].sort();
+
+$('reportElement').innerHTML =
+  '<option value="Todos">Todos</option>' +
+  elementosInforme
+    .map(e => `<option>${e}</option>`)
+    .join('');
+
+
+
+
+
+
+
+     const responsablesInforme = [
+  ...new Set(
+    data
+      .map(x => x.responsible)
+      .filter(r => r && r.trim() !== '')
+  )
+].sort();
+
+$('reportResp').innerHTML =
+  '<option value="Todos">Todos</option>' +
+  responsablesInforme
+    .map(r => `<option>${r}</option>`)
+    .join('');
+     
+     $('reportMetric').onchange = () => {$('metric').value = $('reportMetric').value; 
+     render()}; $('zone').onchange = render; 
+     $('fromDate').onchange = render; 
+     $('toDate').onchange = render; 
+
+     $('reportElement').onchange = render;
+     $('reportResp').onchange = render;
+     $('reportCond').onchange = () => {condInputs(); render()};
+     $('reportVal1').oninput = render;
+     $('reportVal2').oninput = render;
+     $('fechaDesde').onchange = render;
+     $('fechaHasta').onchange = render;
+     
+     window.addEventListener('resize', render); render()
+     
+      
+    }).catch(() => {$('status').textContent = 'No se han podido cargar los datos. Comprueba que la hoja de cálculo sigue publicada.'});
+
+   
+  </script>
+</body>
+
 </html>
